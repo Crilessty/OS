@@ -120,7 +120,7 @@ int main()
 {
     pthread_t pid1,pid2,pid3;
     pthread_mutex_init(&mutex1,NULL);
-    pthread_mutex_init(&mutex1,NULL);
+    pthread_mutex_init(&mutex2,NULL);
     pthread_cond_init(&wait_empty_buffer1,NULL);
     pthread_cond_init(&wait_full_buffer1,NULL);
     pthread_cond_init(&wait_empty_buffer2,NULL);

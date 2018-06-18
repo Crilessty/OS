@@ -6,6 +6,26 @@
 #include <sys/wait.h>
 
 #define MAX_LEN 1000
+int mysys(const char * str)
+{
+    pid_t pid;
+    int status;
+    if(str == NULL)
+        return 1;
+    pid = fork();
+    if(pid < 0)
+        status = -1;
+    else if(pid == 0)
+    {
+        execl("/bin/sh","sh","-c",str,NULL);
+        exit(123);
+    }
+    else
+    {
+        wait(&status);
+    }
+    return status;
+}
 
 int str_operation(const char *str,char **buf)
 {
@@ -74,7 +94,7 @@ int main(int argc,char **argv)
         fd = read(0,cmdstr,MAX_LEN);
         
         if(n = bulidin_command(cmdstr))
-            system(cmdstr);
+            mysys(cmdstr);
 
     }
    return 0;

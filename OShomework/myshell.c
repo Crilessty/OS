@@ -1,20 +1,40 @@
 #include <stdio.h>
-#include <unistd.h>
+#include <unistd.h> 
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
 #define MAX_LEN 1000
+int mysys(const char * str)
+{
+    pid_t pid;
+    int status;
+    if(str == NULL)
+        return 1;
+    pid = fork();
+    if(pid < 0)
+        status = -1;
+    else if(pid == 0)
+    {
+        execl("/bin/sh","sh","-c",str,NULL);
+        exit(123);
+    }
+    else
+    {
+        wait(&status);
+    }
+    return status;
+}
 
 int str_operation(const char *str,char **buf)
 {
     int count,num,i;
     i = count = num = 0;
-
+    
     while(*str == ' ')
         str++;
-
+    
     while(str[i] != '\n')
     {
         if(str[i] == ' ')
@@ -33,32 +53,8 @@ int str_operation(const char *str,char **buf)
     buf[num] = NULL;
     return num;
 }
-int mysys(const char * str)
-{
-    char **buf = (char**)malloc(sizeof(char *)*20);
-    int n = str_operation(str,buf);
-    pid_t pid;
-    int status;
-    if(str == NULL)
-        return 1;
-    pid = fork();
-    if(pid < 0)
-        status = -1;
-    else if(pid == 0)
-    {
-        execvp(buf[0],buf);
-        exit(123);
-    }
-    else
-    {
-        wait(&status);
-    }
-    return status;
-}
 
-
-
-//内置指令返回0，外置命令返回1
+//内置指令返回0，外置命令返回1 
 int bulidin_command(char *str)
 {
     char **buf = (char**)malloc(sizeof(char *)*20);
@@ -68,7 +64,7 @@ int bulidin_command(char *str)
     if(!strcmp(buf[0],"exit"))
     {
         exit(0);
-    }
+    }  
     if(!strcmp(buf[0],"cd"))
     {
         if(chdir(buf[1]) == -1)
@@ -85,22 +81,21 @@ int bulidin_command(char *str)
 }
 
 int main(int argc,char **argv)
-{
+{ 
     int fd,n ;
     char cmdstr[MAX_LEN];
-
-
+    
+    
     while(1)
-    {
+    { 
         printf("shell>");
         fflush(stdout);
         memset(cmdstr,0,MAX_LEN * sizeof(char));
         fd = read(0,cmdstr,MAX_LEN);
-
+        
         if(n = bulidin_command(cmdstr))
             mysys(cmdstr);
 
     }
    return 0;
 }
-

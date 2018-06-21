@@ -4,6 +4,8 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #define MAX_LEN 1000
 
@@ -33,8 +35,9 @@ int str_operation(const char *str,char **buf)
     buf[num] = NULL;
     return num;
 }
-int mysys(const char * str)
+int mysys(char * str)
 {
+    int i,flag,newfd;
     char **buf = (char**)malloc(sizeof(char *)*20);
     int n = str_operation(str,buf);
     pid_t pid;
@@ -46,7 +49,29 @@ int mysys(const char * str)
         status = -1;
     else if(pid == 0)
     {
+        for(i = 0;i < n;i ++)
+        {
+            if(buf[i][0] == '>')
+            {
+                flag = 1;
+                newfd ;
+                if(strlen(buf[i]) == 1)
+                {
+                    newfd = open(buf[i + 1],O_CREAT|O_RDWR, 0777); 
+                }
+                else    
+                {
+                    newfd = open(buf[i] + 1,O_CREAT|O_RDWR, 0777);
+                }
+                buf[i] = NULL;
+                dup2(newfd,1);
+                break;
+            }
+        }
+        
         execvp(buf[0],buf);
+        dup2(1,newfd);
+        close(newfd);
         exit(123);
     }
     else

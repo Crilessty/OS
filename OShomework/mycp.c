@@ -1,17 +1,24 @@
-#include<stdio.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
-int main(int argc,char *argv[])
+
+int main(int argc,char **argv)
 {
-	FILE *fp;
-	char str[1000];
-	int len;
-	fp = fopen(argv[1],"r");
-	fseek(fp,0L,SEEK_END);
-	len = ftell(fp);
-	fseek(fp,0L,SEEK_SET);
-	fread(str,1,len+1,fp);
-	fclose(fp);
-	fp = fopen(argv[2],"w");
-	fwrite(str,1,len+1,fp);
-	return 0;
+    int fd1,fd2,num;
+    char buf[1024];
+    fd1 = open(argv[1],O_CREAT|O_RDWR, 0666);
+    fd2 = open(argv[2],O_CREAT|O_RDWR, 0666);
+
+    while((num = read(fd1,buf,1024)) > 0)
+        write(fd2,buf,num);
+    close(fd1);
+    close(fd2);
+    return 0;
+
 }

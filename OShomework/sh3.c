@@ -8,7 +8,7 @@
 #include <fcntl.h>
 
 #define MAX_LEN 1000
-
+int start = 0;
 int str_operation(const char *str,char **buf)
 {
     int count,num,i;
@@ -37,32 +37,87 @@ int str_operation(const char *str,char **buf)
 }
 void do_command(char **buf,int n)
 {
-    int i,newfd;
+    int i,fd_in,fd_out;
+    int fildes[2],fd[2];
+    int pid;
+    
+    for(i = 0;i < n  - 2;i ++)
+    {
+        if(buf[i][0] == '<')
+        {
+            if(strlen(buf[i]) == 1)
+            {
+                fd_in = open(buf[i + 1],O_CREAT|O_RDWR, 0777); 
+                for(i;i < n - 1;i ++)
+                    buf[i] = buf[i + 2];
+            }
+            else    
+            {
+                fd_in = open(buf[i] + 1,O_CREAT|O_RDWR, 0777);
+                for(i;i < n ;i ++)
+                    buf[i] = buf[i + 1];
+            }
+            dup2(fd_in,0);
+            break;
+        }
+    }
+    
+    //TODO PIPE
+    
+    for(i = 0;i < n && buf[i] != NULL;i ++)
+    {
+        if(strcmp(buf[i],"|") == 0)
+        {   
+            pipe(fildes);
+            pid = fork();
+            if(pid < 0)
+                puts("err");
+            if(pid == 0)
+            {
+                //printf("start :%d,i : %d\n",start,i);
+                //dup2(fildes[0],0);
+                dup2(fildes[1],1);
+                close(fildes[0]);
+                close(fildes[1]);
+                buf[i] = NULL;
+                
+                execvp(buf[start],buf + start);
+            }
+            wait(NULL);
+            start =  i + 1;
+            //printf("%d\n",start);
+            dup2(fildes[0],0);
+            close(fildes[0]);
+            close(fildes[1]);
+        }
+    }
+    //wait(NULL);
     for(i = 0;i < n;i ++)
     {
         if(buf[i][0] == '>')
         {
             if(strlen(buf[i]) == 1)
             {
-                newfd = open(buf[i + 1],O_CREAT|O_RDWR, 0777); 
+                fd_out = open(buf[i + 1],O_CREAT|O_RDWR, 0777); 
                 for(i;i < n - 1;i ++)
                     buf[i] = buf[i + 2];
             }
             else    
             {
-                newfd = open(buf[i] + 1,O_CREAT|O_RDWR, 0777);
+                fd_out = open(buf[i] + 1,O_CREAT|O_RDWR, 0777);
                 for(i;i < n ;i ++)
                     buf[i] = buf[i + 1];
             }
-            dup2(newfd,1);
+            dup2(fd_out,1);
             break;
         }
     }
-
-    //TODO
-    execvp(buf[0],buf);
-    dup2(1,newfd);
-    close(newfd);
+    
+    execvp(buf[start],buf + start);
+    
+    
+    //dup2(1,fd_out);
+    close(fd_out);
     
 }
 int mysys(char * str)

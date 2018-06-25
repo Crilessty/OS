@@ -26,12 +26,11 @@ int main()
     tid = (pthread_t *)malloc(sizeof(pthread_t) * THREAD_NUM);
     a = 1;
     pthread_create(&tid[0],NULL,send,(void *)a);
-    for(int i = 1; i < THREAD_NUM;i ++)
+    for(int i = 1; i <= THREAD_NUM;i ++)
     {
         pthread_join(tid[i - 1],&N);
-        pthread_create(&tid[i],NULL,send,N);
+        pthread_create(&tid[i%24],NULL,send,N);
         count++;
     }
-    pthread_join(tid[23],NULL);
     return 0;
 }
